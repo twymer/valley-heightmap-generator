@@ -8,13 +8,15 @@
 #define W_WIDTH 640
 #define W_HEIGHT 480
 
+#define DEPTH 5
+
 typedef struct _point {
     int x;
     int y;
 } point;
 
 point* perturb_point(point* points, int before, int after, int depth) {
-    if(depth > 2) {
+    if(depth >= DEPTH) {
         return points;
     }
     printf("Perturbing point between %i and %i.\n", before, after);
@@ -25,8 +27,8 @@ point* perturb_point(point* points, int before, int after, int depth) {
     midpoint->x = (points[before].x + points[after].x) / 2;
     midpoint->y = (points[before].y + points[after].y) / 2;
 
-    int x_rand = rand() % 100;
-    int y_rand = rand() % 100;
+    int x_rand = rand() % ((200 / (depth + 1)) - (100 / (depth + 1)));
+    int y_rand = rand() % ((200 / (depth + 1)) - (100 / (depth + 1)));
     printf("Random offsets are %i and %i.\n", x_rand, y_rand);
     midpoint->x += x_rand;
     midpoint->y += y_rand;
@@ -39,13 +41,14 @@ point* perturb_point(point* points, int before, int after, int depth) {
     return points;
 }
 
-point* form_line(point start, point end) {
+point* form_line(int depth, point start, point end) {
+    int total_points = depth * depth;
     point* points;
-    points = malloc(sizeof(point) * 9);
+    points = malloc(sizeof(point) * total_points);
     points[0] = start;
-    points[8] = end;
+    points[total_points - 1] = end;
 
-    return perturb_point(points, 0, 8, 0);
+    return perturb_point(points, 0, total_points - 1, 0);
 }
 
 main(int argc, char* argv[]) {
@@ -63,8 +66,8 @@ main(int argc, char* argv[]) {
     end.x = 400;
     end.y = 400;
     point* points;
-    points = form_line(start, end);
-
+    int total_points = DEPTH * DEPTH;
+    points = form_line(DEPTH, start, end);
 
     /* HERE BE OPENGL DRAGONS */
 
@@ -90,7 +93,7 @@ main(int argc, char* argv[]) {
     glLineWidth(1);
     glBegin(GL_LINE_STRIP);
         int i;
-        for(i = 0; i < 9; i++) {
+        for(i = 0; i < total_points; i++) {
             glVertex2i(points[i].x, points[i].y);
         }
     glEnd();
