@@ -8,12 +8,17 @@
 #define W_WIDTH 640
 #define W_HEIGHT 480
 
-#define DEPTH 5
+#define DEPTH 8
 
 typedef struct _point {
     int x;
     int y;
 } point;
+
+float random_by_depth(int depth) {
+    int max = 200 / (depth * depth + 1);
+    return max * (-1+2*((float)rand())/RAND_MAX);
+}
 
 point* perturb_point(point* points, int before, int after, int depth) {
     if(depth >= DEPTH) {
@@ -27,9 +32,9 @@ point* perturb_point(point* points, int before, int after, int depth) {
     midpoint->x = (points[before].x + points[after].x) / 2;
     midpoint->y = (points[before].y + points[after].y) / 2;
 
-    int x_rand = rand() % ((200 / (depth + 1)) - (100 / (depth + 1)));
-    int y_rand = rand() % ((200 / (depth + 1)) - (100 / (depth + 1)));
-    printf("Random offsets are %i and %i.\n", x_rand, y_rand);
+    float x_rand = random_by_depth(depth);
+    float y_rand = random_by_depth(depth);
+    printf("Random offsets are %f and %f.\n", x_rand, y_rand);
     midpoint->x += x_rand;
     midpoint->y += y_rand;
 
