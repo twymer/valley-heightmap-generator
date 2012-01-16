@@ -16,7 +16,7 @@ typedef struct _point {
 } point;
 
 float random_by_depth(int depth) {
-    int max = 200 / (depth * depth + 1);
+    int max = 300 / (depth * depth + 1);
     return max * (-1+2*((float)rand())/RAND_MAX);
 }
 
@@ -35,7 +35,7 @@ point* perturb_point(point* points, int before, int after, int depth) {
     float x_rand = random_by_depth(depth);
     float y_rand = random_by_depth(depth);
     printf("Random offsets are %f and %f.\n", x_rand, y_rand);
-    midpoint->x += x_rand;
+    midpoint->x += x_rand / 3;
     midpoint->y += y_rand;
 
     int current = (before + after) / 2;
@@ -67,9 +67,9 @@ main(int argc, char* argv[]) {
 
     point start, end;
     start.x = 5;
-    start.y = 5;
-    end.x = 400;
-    end.y = 400;
+    start.y = 200;
+    end.x = 600;
+    end.y = 200;
     point* points;
     int total_points = DEPTH * DEPTH;
     points = form_line(DEPTH, start, end);
@@ -104,7 +104,7 @@ main(int argc, char* argv[]) {
     glEnd();
 
     SDL_GL_SwapBuffers();
-    SDL_Delay(2000);
+    SDL_Delay(3000);
 
     /* cleanup */
 
