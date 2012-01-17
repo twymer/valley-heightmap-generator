@@ -1,6 +1,7 @@
 #include "SDL/SDL.h"
 #include <stdlib.h> /* Required for random */
 #include <time.h> /* For random seeding */
+#include <math.h> /* For powers in random gen */
 
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -8,7 +9,9 @@
 #define W_WIDTH 640
 #define W_HEIGHT 480
 
-#define DEPTH 8
+#define DEPTH 5
+
+#define REDUCE_RANGE_CONSTANT .5
 
 typedef struct _point {
     int x;
@@ -16,16 +19,18 @@ typedef struct _point {
 } point;
 
 float random_by_depth(int depth) {
-    int max = 300 / (depth * depth + 1);
-    return max * (-1+2*((float)rand())/RAND_MAX);
+    float reduce_by = pow(REDUCE_RANGE_CONSTANT, depth + 1);
+    float random = (-1+2*((float)rand())/RAND_MAX) * reduce_by;
+    float max = 300;
+    return max * random;
 }
 
 point* perturb_point(point* points, int before, int after, int depth) {
     if(depth >= DEPTH) {
         return points;
     }
-    printf("Perturbing point between %i and %i.\n", before, after);
-    printf("Currently at depth %i.\n", depth);
+    //printf("Perturbing point between %i and %i.\n", before, after);
+    //printf("Currently at depth %i.\n", depth);
 
     point* midpoint;
     midpoint = malloc(sizeof(point));
@@ -34,8 +39,8 @@ point* perturb_point(point* points, int before, int after, int depth) {
 
     float x_rand = random_by_depth(depth);
     float y_rand = random_by_depth(depth);
-    printf("Random offsets are %f and %f.\n", x_rand, y_rand);
-    midpoint->x += x_rand / 3;
+    //printf("Random offsets are %f and %f.\n", x_rand, y_rand);
+    /*midpoint->x += x_rand / 4;*/
     midpoint->y += y_rand;
 
     int current = (before + after) / 2;
