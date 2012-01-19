@@ -86,8 +86,9 @@ vec2* form_line(int depth, vec2 start, vec2 end) {
     return perturb_point(points, 0, total_points - 1, 0);
 }
 
-float valley_function(int x) {
-    return .1 * x;
+float valley_function(float x) {
+    x /= 15;
+    return (.2 * x) * (.2 * x) + x;
 }
 
 float length_squared(vec2 v, vec2 w) {
@@ -170,10 +171,14 @@ int main() {
             if(min_dist < 15) {
                 float previous_value = height_map.GetValue(x, y);
                 float function_offset = valley_function(min_dist);
-                printf("min dist: %f, x: %i, y: %i\n", min_dist, x, y);
-                printf("function_offset: %f\n\n", function_offset);
-                printf("previous value: %f\n\n", previous_value);
-                height_map.SetValue(x, y, previous_value - function_offset);
+                if(previous_value > 0) {
+                    printf("min dist: %f, x: %i, y: %i\n", min_dist, x, y);
+                    printf("function_offset: %f\n\n", function_offset);
+                    printf("previous value: %f\n\n", previous_value);
+                }
+                if(function_offset < previous_value) {
+                    height_map.SetValue(x, y, function_offset);
+                }
             }
         }
     }
@@ -225,5 +230,5 @@ int main() {
     glEnd();
 
     SDL_GL_SwapBuffers();
-    SDL_Delay(3000);
+    //SDL_Delay(3000);
 }
