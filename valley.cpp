@@ -124,14 +124,14 @@ int main() {
     module::Perlin perlin;
     perlin.SetOctaveCount(6);
     perlin.SetFrequency(1.0);
-    perlin.SetFrequency(0.5);
+    perlin.SetPersistence(0.5);
 
     utils::NoiseMap height_map;
     utils::NoiseMapBuilderPlane height_map_builder;
     height_map_builder.SetSourceModule(perlin);
     height_map_builder.SetDestNoiseMap(height_map);
     height_map_builder.SetDestSize(256, 256);
-    height_map_builder.SetBounds(2.0, 6.0, 1.0, 5.0);
+    height_map_builder.SetBounds(6.0, 10.0, 1.0, 5.0);
     height_map_builder.Build();
 
     // Do work
@@ -188,6 +188,18 @@ int main() {
     utils::Image image;
     renderer.SetSourceNoiseMap(height_map);
     renderer.SetDestImage(image);
+    renderer.ClearGradient ();
+    renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
+    renderer.AddGradientPoint (-0.2500, utils::Color (  0,   0, 255, 255)); // shallow
+    renderer.AddGradientPoint ( 0.0000, utils::Color (  0, 128, 255, 255)); // shore
+    renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
+    renderer.AddGradientPoint ( 0.1250, utils::Color ( 32, 160,   0, 255)); // grass
+    renderer.AddGradientPoint ( 0.3750, utils::Color (224, 224,   0, 255)); // dirt
+    renderer.AddGradientPoint ( 0.7500, utils::Color (128, 128, 128, 255)); // rock
+    renderer.AddGradientPoint ( 1.0000, utils::Color (255, 255, 255, 255)); // snow
+    renderer.EnableLight ();
+    renderer.SetLightContrast (3.0); // Triple the contrast
+    renderer.SetLightBrightness (2.0); // Double the brightness
     renderer.Render();
 
     utils::WriterBMP writer;
