@@ -87,8 +87,12 @@ vec2* form_line(int depth, vec2 start, vec2 end) {
 }
 
 float valley_function(float x) {
-    x /= 15;
-    return (.2 * x) * (.2 * x) + x;
+    float val = 2 * ((2 * x) * (2 * x)) / 3.5 - 1.3;
+    if(val > -1) {
+        return val;
+    } else {
+        return -1;
+    }
 }
 
 float length_squared(vec2 v, vec2 w) {
@@ -124,7 +128,7 @@ int main() {
     module::Perlin perlin;
     perlin.SetOctaveCount(6);
     perlin.SetFrequency(1.0);
-    perlin.SetPersistence(0.5);
+    perlin.SetPersistence(0.3);
 
     utils::NoiseMap height_map;
     utils::NoiseMapBuilderPlane height_map_builder;
@@ -168,16 +172,12 @@ int main() {
                 }
             }
 
-            if(min_dist < 15) {
+            if(min_dist < 40) {
                 float previous_value = height_map.GetValue(x, y);
-                float function_offset = valley_function(min_dist);
-                if(previous_value > 0) {
-                    printf("min dist: %f, x: %i, y: %i\n", min_dist, x, y);
-                    printf("function_offset: %f\n\n", function_offset);
-                    printf("previous value: %f\n\n", previous_value);
-                }
-                if(function_offset < previous_value) {
-                    height_map.SetValue(x, y, function_offset);
+                float function_value = valley_function(min_dist / 20);
+                printf("function value: %f\n", function_value);
+                if(function_value < previous_value) {
+                    height_map.SetValue(x, y, function_value);
                 }
             }
         }
@@ -188,6 +188,14 @@ int main() {
     utils::Image image;
     renderer.SetSourceNoiseMap(height_map);
     renderer.SetDestImage(image);
+
+    renderer.Render();
+    utils::WriterBMP writer;
+    writer.SetSourceImage(image);
+    writer.SetDestFilename("heightmap.bmp");
+    writer.WriteDestFile();
+
+    // Now add color and make a second image
     renderer.ClearGradient ();
     renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
     renderer.AddGradientPoint (-0.2500, utils::Color (  0,   0, 255, 255)); // shallow
@@ -202,9 +210,8 @@ int main() {
     renderer.SetLightBrightness (2.0); // Double the brightness
     renderer.Render();
 
-    utils::WriterBMP writer;
     writer.SetSourceImage(image);
-    writer.SetDestFilename("heightmap.bmp");
+    writer.SetDestFilename("color.bmp");
     writer.WriteDestFile();
 
     /* HERE BE OPENGL DRAGONS */
