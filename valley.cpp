@@ -87,12 +87,16 @@ vec2* form_line(int depth, vec2 start, vec2 end) {
 }
 
 float valley_function(float x) {
-    float val = 2 * ((2 * x) * (2 * x)) / 3.5 - 1.3;
-    if(val > -1) {
-        return val;
-    } else {
-        return -1;
-    }
+    // Logistic function 0:1 on both axis
+    return 1 / (1 + pow(2.71828, -(x * 10 - 5)));
+
+    // parabola with floor
+    //float val = 2 * ((2 * x) * (2 * x)) / 3.5 - 1.3;
+    //if(val > -1) {
+        //return val;
+    //} else {
+        //return -1;
+    //}
 }
 
 float length_squared(vec2 v, vec2 w) {
@@ -172,13 +176,11 @@ int main() {
                 }
             }
 
-            if(min_dist < 40) {
+            if(min_dist < 25) {
                 float previous_value = height_map.GetValue(x, y);
-                float function_value = valley_function(min_dist / 20);
+                float function_value = valley_function(min_dist / 25);
                 printf("function value: %f\n", function_value);
-                if(function_value < previous_value) {
-                    height_map.SetValue(x, y, function_value);
-                }
+                height_map.SetValue(x, y, previous_value - (1 - function_value));
             }
         }
     }
