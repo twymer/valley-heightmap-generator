@@ -9,7 +9,7 @@
 #include <libnoise/noise.h>
 #include "noiseutils.h"
 
-#define DEPTH 5
+#define DEPTH 3
 #define W_WIDTH 640
 #define W_HEIGHT 480
 
@@ -116,6 +116,7 @@ float dot(vec2 v, vec2 w) {
 float distance_to_line(vec2 v, vec2 w, vec2 p) {
     // Return minimum distance between line segment vw and vec2 p
     const float l2 = length_squared(v, w);  // i.e. |w-v|^2 -  avoid a sqrt
+    //printf("ls: %f of %f:%f %f:%f\n", l2, v.x, v.y, w.x, w.y);
     if (l2 == 0.0) return distance(p, v);   // v == w case
     // Consider the line extending the segment, parameterized as v + t (w - v).
     // We find projection of vec2 p onto the line. 
@@ -183,14 +184,8 @@ int main() {
             if(min_dist < 45) {
                 float previous_value = height_map.GetValue(x, y);
                 float function_value = valley_function(min_dist / 45);
-                printf("function value: %f\n", function_value);
-                float new_value = function_value * 2;
-                if(new_value < previous_value) {
-                    new_value = (new_value * 2 + (previous_value - (0.5 - function_value))) / 2;
-                    height_map.SetValue(x, y, new_value);
-                } else {
-                    height_map.SetValue(x, y, previous_value - (0.5 - function_value));
-                }
+                //printf("function value: %f\n", function_value);
+                height_map.SetValue(x, y, previous_value - (0.5 - function_value));
             }
         }
     }
@@ -204,10 +199,12 @@ int main() {
 
     // Again with color
     renderer.ClearGradient ();
-    renderer.AddGradientPoint (-1.00, utils::Color ( 32, 160,   0, 255)); // grass
-    renderer.AddGradientPoint (-0.25, utils::Color (224, 224,   0, 255)); // dirt
-    renderer.AddGradientPoint ( 0.25, utils::Color (128, 128, 128, 255)); // rock
-    renderer.AddGradientPoint ( 1.00, utils::Color (255, 255, 255, 255)); // snow
+    renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
+    renderer.AddGradientPoint (-0.5500, utils::Color (  0,   0, 255, 255)); // shallow
+    renderer.AddGradientPoint (-0.3500, utils::Color (  0, 128, 255, 255)); // shore
+    renderer.AddGradientPoint (-0.2000, utils::Color ( 32, 160,   0, 255)); // grass
+    renderer.AddGradientPoint ( 0.3750, utils::Color (224, 224,   0, 255)); // dirt
+    renderer.AddGradientPoint ( 0.6000, utils::Color (255, 255, 255, 255)); // snow
     renderer.EnableLight ();
     renderer.SetLightContrast (3.0);
     renderer.SetLightBrightness (2.0);
@@ -253,5 +250,5 @@ int main() {
     glEnd();
 
     SDL_GL_SwapBuffers();
-    //SDL_Delay(3000);
+    SDL_Delay(30000);
 }
