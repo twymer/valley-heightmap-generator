@@ -88,7 +88,7 @@ vec2* form_line(int depth, vec2 start, vec2 end) {
 
 float valley_function(float x) {
     // Logistic function 0:1 on both axis
-    return 1 / (1 + pow(2.71828, -(x * 10 - 5)));
+    return 1 / (1 + pow(2.71828, -(x * 10 - 5))) / 2;
 
     // parabola with floor
     //float val = 2 * ((2 * x) * (2 * x)) / 3.5 - 1.3;
@@ -129,20 +129,24 @@ float distance_to_line(vec2 v, vec2 w, vec2 p) {
 
 int main() {
     // Initialize noise objects
-    module::Perlin perlin;
-    perlin.SetOctaveCount(6);
-    perlin.SetFrequency(1.0);
-    perlin.SetPersistence(0.3);
+    module::Billow base_flat_terrain;
+    base_flat_terrain.SetFrequency(2.0);
+    module::ScaleBias flat_terrain;
+    flat_terrain.SetSourceModule(0, base_flat_terrain);
+    flat_terrain.SetScale(0.125);
 
     utils::NoiseMap height_map;
     utils::NoiseMapBuilderPlane height_map_builder;
-    height_map_builder.SetSourceModule(perlin);
+    height_map_builder.SetSourceModule(flat_terrain);
     height_map_builder.SetDestNoiseMap(height_map);
-    height_map_builder.SetDestSize(256, 256);
+    height_map_builder.SetDestSize(512, 512);
     height_map_builder.SetBounds(6.0, 10.0, 1.0, 5.0);
     height_map_builder.Build();
 
-    // Do work
+    utils::RendererImage renderer;
+    utils::Image image;
+    renderer.SetSourceNoiseMap (height_map);
+    renderer.SetDestImage (image);
 
     /* random seed */
     srand((unsigned int)time(NULL));
@@ -176,45 +180,43 @@ int main() {
                 }
             }
 
-            if(min_dist < 25) {
+            if(min_dist < 45) {
                 float previous_value = height_map.GetValue(x, y);
-                float function_value = valley_function(min_dist / 25);
+                float function_value = valley_function(min_dist / 45);
                 printf("function value: %f\n", function_value);
-                height_map.SetValue(x, y, previous_value - (1 - function_value));
+                float new_value = function_value * 2;
+                if(new_value < previous_value) {
+                    new_value = (new_value * 2 + (previous_value - (0.5 - function_value))) / 2;
+                    height_map.SetValue(x, y, new_value);
+                } else {
+                    height_map.SetValue(x, y, previous_value - (0.5 - function_value));
+                }
             }
         }
     }
 
     // Render the heightmap
-    utils::RendererImage renderer;
-    utils::Image image;
-    renderer.SetSourceNoiseMap(height_map);
-    renderer.SetDestImage(image);
-
     renderer.Render();
     utils::WriterBMP writer;
     writer.SetSourceImage(image);
     writer.SetDestFilename("heightmap.bmp");
     writer.WriteDestFile();
 
-    // Now add color and make a second image
+    // Again with color
     renderer.ClearGradient ();
-    renderer.AddGradientPoint (-1.0000, utils::Color (  0,   0, 128, 255)); // deeps
-    renderer.AddGradientPoint (-0.2500, utils::Color (  0,   0, 255, 255)); // shallow
-    renderer.AddGradientPoint ( 0.0000, utils::Color (  0, 128, 255, 255)); // shore
-    renderer.AddGradientPoint ( 0.0625, utils::Color (240, 240,  64, 255)); // sand
-    renderer.AddGradientPoint ( 0.1250, utils::Color ( 32, 160,   0, 255)); // grass
-    renderer.AddGradientPoint ( 0.3750, utils::Color (224, 224,   0, 255)); // dirt
-    renderer.AddGradientPoint ( 0.7500, utils::Color (128, 128, 128, 255)); // rock
-    renderer.AddGradientPoint ( 1.0000, utils::Color (255, 255, 255, 255)); // snow
+    renderer.AddGradientPoint (-1.00, utils::Color ( 32, 160,   0, 255)); // grass
+    renderer.AddGradientPoint (-0.25, utils::Color (224, 224,   0, 255)); // dirt
+    renderer.AddGradientPoint ( 0.25, utils::Color (128, 128, 128, 255)); // rock
+    renderer.AddGradientPoint ( 1.00, utils::Color (255, 255, 255, 255)); // snow
     renderer.EnableLight ();
-    renderer.SetLightContrast (3.0); // Triple the contrast
-    renderer.SetLightBrightness (2.0); // Double the brightness
-    renderer.Render();
+    renderer.SetLightContrast (3.0);
+    renderer.SetLightBrightness (2.0);
+    renderer.Render ();
 
-    writer.SetSourceImage(image);
-    writer.SetDestFilename("color.bmp");
-    writer.WriteDestFile();
+    writer.SetSourceImage (image);
+    writer.SetDestFilename ("color.bmp");
+    writer.WriteDestFile ();
+
 
     /* HERE BE OPENGL DRAGONS */
 
